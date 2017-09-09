@@ -11,6 +11,46 @@
 /*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
 
 --
+-- Table structure for table `tbl_transaction`
+--
+
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `tbl_transaction` (
+  `trans_id` bigint(20) NOT NULL,
+  `trans_amount` decimal(10,2) DEFAULT NULL,
+  `trans_emitter` bigint(20) DEFAULT NULL,
+  `trans_receiver` bigint(20) DEFAULT NULL,
+  `trans_date` datetime DEFAULT NULL,
+  `trans_type` int(11) DEFAULT NULL,
+  `trans_description` varchar(100) DEFAULT NULL,
+  PRIMARY KEY (`trans_id`),
+  KEY `trans_emitter` (`trans_emitter`,`trans_receiver`),
+  KEY `trans_receiver` (`trans_receiver`),
+  CONSTRAINT `tbl_transaction_ibfk_1` FOREIGN KEY (`trans_emitter`) REFERENCES `tbl_user` (`user_id`) ON UPDATE CASCADE,
+  CONSTRAINT `tbl_transaction_ibfk_2` FOREIGN KEY (`trans_receiver`) REFERENCES `tbl_user` (`user_id`) ON UPDATE CASCADE
+);
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `tbl_user`
+--
+
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `tbl_user` (
+  `user_id` bigint(20) NOT NULL,
+  `user_name` varchar(160) DEFAULT NULL,
+  `user_password` varchar(160) DEFAULT NULL,
+  `user_fb_id` varchar(30) DEFAULT NULL,
+  `user_email` varchar(60) DEFAULT NULL,
+  `user_phone` varchar(15) DEFAULT NULL,
+  `app_token` varchar(255) DEFAULT NULL,
+  PRIMARY KEY (`user_id`)
+);
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
 -- Dumping routines for database 'qr_pay'
 --
 /*!50003 SET @saved_cs_client      = @@character_set_client */ ;
@@ -90,6 +130,71 @@ DELIMITER ;
 /*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
 /*!50003 SET sql_mode              = '' */ ;
 DELIMITER ;;
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_createUserEmail`(
+   IN p_name VARCHAR(160),
+   IN p_email VARCHAR(60),
+   IN p_password VARCHAR(160),
+   IN p_fb_id VARCHAR(30),
+   IN p_app_token VARCHAR(255)
+)
+BEGIN
+     insert into tbl_user
+        (
+            user_name, user_password, user_fb_id, user_email, app_token
+        )
+        values
+        (
+            p_name, p_password,p_fb_id,p_email, p_app_token
+        );
+     select LAST_INSERT_ID();
+END ;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8 */ ;
+/*!50003 SET character_set_results = utf8 */ ;
+/*!50003 SET collation_connection  = utf8_general_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = '' */ ;
+DELIMITER ;;
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_createUserPhone`(
+   IN p_name VARCHAR(160),
+   IN p_email VARCHAR(60),
+   IN p_phone VARCHAR(15),
+   IN p_password VARCHAR(160),
+   IN p_fb_id VARCHAR(30),
+   IN p_app_token VARCHAR(255)
+)
+BEGIN
+     insert into tbl_user
+        (
+            user_name, user_password, user_fb_id, user_email, user_phone, app_token
+        )
+        values
+        (
+            p_name, p_password,p_fb_id,p_email, p_phone, p_app_token
+        );
+     select LAST_INSERT_ID();
+END ;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8 */ ;
+/*!50003 SET character_set_results = utf8 */ ;
+/*!50003 SET collation_connection  = utf8_general_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = '' */ ;
+DELIMITER ;;
 CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_getAllTransactions`()
 BEGIN
      SELECT tbl_tr.trans_id, tbl_tr.trans_amount, tbl_u.user_name as trans_emitter, tbl_t.user_name as trans_receiver, tbl_tr.trans_date, tbl_tr.trans_type, tbl_tr.trans_description
@@ -151,9 +256,102 @@ DELIMITER ;
 /*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
 /*!50003 SET sql_mode              = '' */ ;
 DELIMITER ;;
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_getBalanceByUser`(IN p_id BIGINT)
+BEGIN
+DECLARE total_received DECIMAL(10,2);
+DECLARE total_sent DECIMAL(10,2);
+    SELECT SUM(tbl_tr.trans_amount) INTO total_received FROM tbl_transaction tbl_tr WHERE tbl_tr.trans_receiver=p_id;
+    SELECT SUM(tbl_tr.trans_amount) INTO total_sent FROM tbl_transaction tbl_tr WHERE tbl_tr.trans_emitter=p_id;
+    SELECT SUM(total_received) - IFNULL(SUM(total_sent), 0);
+END ;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8 */ ;
+/*!50003 SET character_set_results = utf8 */ ;
+/*!50003 SET collation_connection  = utf8_general_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = '' */ ;
+DELIMITER ;;
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_getUserAppToken`(
+   IN p_user_id BIGINT
+)
+BEGIN
+    SELECT app_token, user_name FROM tbl_user WHERE user_id=p_user_id;
+END ;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8 */ ;
+/*!50003 SET character_set_results = utf8 */ ;
+/*!50003 SET collation_connection  = utf8_general_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = '' */ ;
+DELIMITER ;;
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_getUserByEmailAndUID`(
+   IN p_email VARCHAR(60),
+   IN p_fb_id VARCHAR(30),
+   IN p_app_token VARCHAR(255)
+)
+BEGIN
+    SET @update_id := 0;
+UPDATE tbl_user SET app_token = p_app_token, user_id = (SELECT @update_id := user_id)
+WHERE user_email=p_email AND user_fb_id=p_fb_id LIMIT 1; 
+SELECT @update_id;
+END ;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8 */ ;
+/*!50003 SET character_set_results = utf8 */ ;
+/*!50003 SET collation_connection  = utf8_general_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = '' */ ;
+DELIMITER ;;
 CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_getUserById`(IN p_id BIGINT)
 BEGIN
      SELECT * FROM tbl_user WHERE tbl_user.user_id = p_id;
+END ;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8 */ ;
+/*!50003 SET character_set_results = utf8 */ ;
+/*!50003 SET collation_connection  = utf8_general_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = '' */ ;
+DELIMITER ;;
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_getUserByPhoneAndUID`(
+   IN p_phone VARCHAR(15),
+   IN p_fb_id VARCHAR(30),
+   IN p_app_token VARCHAR(255)
+)
+BEGIN
+    SET @update_id := 0;
+    SET @user_email:= "";
+UPDATE tbl_user SET app_token = p_app_token, user_id = (SELECT @update_id := user_id), user_email = (SELECT @user_email := user_email)
+WHERE user_phone=p_phone AND user_fb_id=p_fb_id LIMIT 1; 
+SELECT @update_id, @user_email;
 END ;;
 DELIMITER ;
 /*!50003 SET sql_mode              = @saved_sql_mode */ ;
@@ -226,4 +424,4 @@ DELIMITER ;
 /*!40014 SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2017-08-28  9:22:52
+-- Dump completed on 2017-09-09 15:00:24
