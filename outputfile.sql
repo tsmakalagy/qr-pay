@@ -367,6 +367,33 @@ DELIMITER ;
 /*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
 /*!50003 SET sql_mode              = '' */ ;
 DELIMITER ;;
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_getUserIdAndPhoneByPhoneAndUID`(
+   IN p_phone VARCHAR(15),
+   IN p_fb_id VARCHAR(30),
+   IN p_app_token VARCHAR(255)
+)
+BEGIN
+    SET @update_id := 0;
+    SET @user_email:= "";
+    SET @user_phone:= "";
+UPDATE tbl_user SET app_token = p_app_token, user_id = (SELECT @update_id := user_id), user_email = (SELECT @user_email := user_email), user_phone = (SELECT @user_phone := user_phone)
+WHERE user_phone=p_phone AND user_fb_id=p_fb_id LIMIT 1; 
+SELECT @update_id, @user_email, @user_phone;
+END ;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8 */ ;
+/*!50003 SET character_set_results = utf8 */ ;
+/*!50003 SET collation_connection  = utf8_general_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = '' */ ;
+DELIMITER ;;
 CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_updateTableTrans`(
 IN p_password VARCHAR(160),
 IN p_amount DECIMAL(10, 2),
