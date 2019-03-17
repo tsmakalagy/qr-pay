@@ -288,12 +288,12 @@ def getUserByPhone():
         if _phone_number and _fb_id and _app_token:
             conn = mysql.connect()
             cursor = conn.cursor()
-            cursor.callproc('sp_getUserByPhoneAndUID',(_phone_number, _fb_id, _app_token))
+            cursor.callproc('sp_getUserIdAndPhoneByPhoneAndUID',(_phone_number, _fb_id, _app_token))
             data = cursor.fetchone()
 
             if len(data) > 0:
                 conn.commit()
-                return jsonify({'user_id':data[0], 'user_email':data[1]})
+                return jsonify({'user_id':data[0], 'user_email':data[1], 'user_phone':data[2]})
             else:
                 return jsonify({'message':'User not found !'})
         else:
