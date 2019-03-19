@@ -105,6 +105,8 @@ def createUserPhone():
         _fb_id = request.json['fb_id']
         _app_token = request.json['app_token']
 
+        _phone_number = _phone_number.replace("+261", "0")
+
         # validate the received values
         if _name and _phone_number and _email and _password and _fb_id and _app_token:
             
@@ -282,6 +284,8 @@ def getUserByPhone():
         _phone_number = request.json['phone_number']
         _fb_id = request.json['fb_id']
         _app_token = request.json['app_token']
+
+        _phone_number = _phone_number.replace("+261", "0")
         
 
         # validate the received values
