@@ -186,7 +186,7 @@ def createTransaction():
             return jsonify({'error_required':'Enter the required fields'})
 
     except Exception as e:
-        return jsonify({'error2':str(e)})SuccessActivity
+        return jsonify({'error2':str(e)})
     
 def list_transactions(_trs):
     if len(_trs) > 0:
