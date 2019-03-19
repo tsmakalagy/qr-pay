@@ -159,7 +159,7 @@ def createTransaction():
                         conn.commit()
                         
                         ## Send notification
-                        cursor.callproc('sp_getUserAppToken',_receiver)
+                        cursor.callproc('sp_getUserAppToken',[_receiver])
                         data_token = cursor.fetchone()
                         if len(data_token) > 0:
                             registration_id = data_token[0];
@@ -186,7 +186,7 @@ def createTransaction():
             return jsonify({'error_required':'Enter the required fields'})
 
     except Exception as e:
-        return jsonify({'error2':str(e)})
+        return jsonify({'error2':str(e)})SuccessActivity
     
 def list_transactions(_trs):
     if len(_trs) > 0:
